@@ -5,8 +5,10 @@ typedef enum {
 } ConfigResult;
 
 typedef struct {
-    int port;
-    int timeout;
+    int param1;
+    int param2;
 } Config;
+
+
 
 ConfigResult read_config(const char *path, Config *config);
