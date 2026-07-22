@@ -18,6 +18,7 @@ step_acquisition_time_sec = 15
 min_voltage = 5
 max_voltage = 10
 hv_increment_per_step = 10
+max_starting_voltage_deviation_percent = 3
 
 [large_tube.test.starting_voltage]
 voltage_steps = 10
