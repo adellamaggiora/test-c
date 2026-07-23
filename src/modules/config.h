@@ -1,3 +1,7 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+
 typedef struct {
     int acquisition_time_sec;
     int max_sensitivity_deviation_percent;
@@ -13,13 +17,21 @@ typedef struct {
 } StartingVoltageTestParams;
 
 typedef struct {
+    GammaTestParams gamma_test_params;
+    StartingVoltageTestParams starting_voltage_test_params;
+} TubeConfig;
+
+typedef struct {
     char *operator_name;
     char *report_folder_path;
     char *execution_mode;
-    GammaTestParams gamma_test_params;
-    StartingVoltageTestParams starting_voltage_test_params;
+
+    TubeConfig small_tube;
+    TubeConfig large_tube;
 } Config;
 
 
+int read_config(const char *path, Config *config);
 
-Config read_config(const char *path, Config *config);
+
+#endif

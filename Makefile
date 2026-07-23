@@ -1,10 +1,14 @@
 CC = gcc
 CFLAGS = -g -O0 -Wall -Wextra -Wpedantic -std=gnu11
-INCLUDES = -I lib/tomlc17
+INCLUDES = -Ilib/tomlc17 -Isrc/modules
 
-build/main: src/main.c lib/tomlc17/tomlc17.c
+SOURCES = src/main.c \
+          src/modules/config.c \
+          lib/tomlc17/tomlc17.c
+
+build/main: $(SOURCES)
 	mkdir -p build
-	$(CC) $(CFLAGS) $(INCLUDES) src/main.c lib/tomlc17/tomlc17.c -o build/main
+	$(CC) $(CFLAGS) $(INCLUDES) $(SOURCES) -o build/main
 
 clean:
 	rm -rf build
