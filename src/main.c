@@ -21,6 +21,9 @@ int main(int argc, char *argv[])
 
     free_config(&config);
 
+    
 
+    
+    
     return 0;
 }

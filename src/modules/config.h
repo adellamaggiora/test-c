@@ -5,6 +5,7 @@
 typedef struct {
     int acquisition_time_sec;
     int max_sensitivity_deviation_percent;
+    int avg_dose_rate_ref
 } GammaTestParams;
 
 typedef struct {
