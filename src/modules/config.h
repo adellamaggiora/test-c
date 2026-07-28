@@ -5,7 +5,7 @@
 typedef struct {
     int acquisition_time_sec;
     int max_sensitivity_deviation_percent;
-    int avg_dose_rate_ref
+    int avg_dose_rate_ref;
 } GammaTestParams;
 
 typedef struct {
@@ -26,13 +26,14 @@ typedef struct {
     char *operator_name;
     char *report_folder_path;
     char *execution_mode;
-
     TubeConfig small_tube;
     TubeConfig large_tube;
 } Config;
 
 
 int read_config(const char *path, Config *config);
+
+void free_config(Config *config);
 
 
 #endif

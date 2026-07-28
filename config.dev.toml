@@ -1,26 +1,27 @@
 [general]
-operator = "operatore1"
+operator_name = "operatore1"
 report_folder_path = "report"
 execution_mode = "simulated"
 
-[small_tube.test.gamma]
+[small_tube.test_gamma]
 acquisition_time_sec = 100
 max_sensitivity_deviation_percent = 5
+avg_dose_rate_ref = 10
 
-[large_tube.test.gamma]
+[large_tube.test_gamma]
 acquisition_time_sec = 100
 max_sensitivity_deviation_percent = 5
+avg_dose_rate_ref = 10
 
-[small_tube.test.starting_voltage]
+[small_tube.test_starting_voltage]
 voltage_steps = 10
 min_detected_events = 6
 step_acquisition_time_sec = 15
 min_voltage = 5
 max_voltage = 10
 hv_increment_per_step = 10
-max_starting_voltage_deviation_percent = 3
 
-[large_tube.test.starting_voltage]
+[large_tube.test_starting_voltage]
 voltage_steps = 10
 min_detected_events = 6
 step_acquisition_time_sec = 15
