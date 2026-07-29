@@ -4,6 +4,7 @@ INCLUDES = -Ilib/tomlc17 -Isrc/modules
 
 SOURCES = src/main.c \
 		src/modules/mercury_reader.c \
+		src/modules/utils.c \
         src/modules/config.c \
         lib/tomlc17/tomlc17.c
 

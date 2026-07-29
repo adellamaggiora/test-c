@@ -1,8 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdatomic.h>
+#include <stdbool.h>
 #include "config.h"
 #include "mercury_reader.h"
+#include "utils.h"
+
+
+static atomic_bool acquisition_running;
+
 
 int main(int argc, char *argv[])
 {
@@ -23,13 +30,7 @@ int main(int argc, char *argv[])
     }
 
 
-    for (int i = 0; i < 10; i++)
-    {
-        int dose_rate = get_gamma_dose_rate();
-        printf("%d \n", dose_rate);
-    }
-
-    
+    timer(5000);
 
     free_config(&config);
 
