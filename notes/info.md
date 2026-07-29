@@ -35,23 +35,37 @@ e restituisce l'errore al sistema operativo
 
 - Principali tipi
 
-| Tipo                 | Descrizione                        | Dimensione tipica  | Esempio                             |
-| -------------------- | ---------------------------------- | -----------------: | ----------------------------------- |
-| `char`               | carattere / intero piccolo         |             1 byte | `char c = 'A';`                     |
-| `signed char`        | intero con segno                   |             1 byte | `signed char x = -10;`              |
-| `unsigned char`      | intero senza segno                 |             1 byte | `unsigned char x = 255;`            |
-| `short`              | intero corto                       |             2 byte | `short x = -1000;`                  |
-| `unsigned short`     | intero corto senza segno           |             2 byte | `unsigned short x = 1000;`          |
-| `int`                | intero standard                    |             4 byte | `int x = -42;`                      |
-| `unsigned int`       | intero senza segno                 |             4 byte | `unsigned int x = 42U;`             |
-| `long`               | intero lungo                       |         4 o 8 byte | `long x = 100000L;`                 |
-| `unsigned long`      | intero lungo senza segno           |         4 o 8 byte | `unsigned long x = 100000UL;`       |
-| `long long`          | intero molto lungo                 |             8 byte | `long long x = 100000LL;`           |
-| `unsigned long long` | intero molto lungo senza segno     |             8 byte | `unsigned long long x = 100000ULL;` |
-| `float`              | virgola mobile, precisione singola |             4 byte | `float x = 3.14f;`                  |
-| `double`             | virgola mobile, precisione doppia  |             8 byte | `double x = 3.14;`                  |
-| `long double`        | virgola mobile estesa              |    8, 12 o 16 byte | `long double x = 3.14L;`            |
-| `_Bool` / `bool`     | valore booleano                    |      1 byte tipico | `bool ok = true;`                   |
-| `void`               | assenza di valore                  |                  — | `void funzione(void);`              |
+    | Tipo                 | Descrizione                        | Dimensione tipica  |  Esempio                             |
+    | -------------------- | ---------------------------------- | -----------------: |  ----------------------------------- |
+    | `char`               | carattere / intero piccolo         |             1 byte | `char c = 'A';   `                     |
+    | `signed char`        | intero con segno                   |             1 byte | `signed char x =     -10;`              |
+    | `unsigned char`      | intero senza segno                 |             1 byte | `unsigned char x     = 255;`            |
+    | `short`              | intero corto                       |             2 byte | `short x = -1000;    `                  |
+    | `unsigned short`     | intero corto senza segno           |             2 byte | `unsigned short  x = 1000;`          |
+    | `int`                | intero standard                    |             4 byte | `int x = -42;    `                      |
+    | `unsigned int`       | intero senza segno                 |             4 byte | `unsigned int x  = 42U;`             |
+    | `long`               | intero lungo                       |         4 o 8 byte | `long x =    100000L;`                 |
+    | `unsigned long`      | intero lungo senza segno           |         4 o 8 byte | `unsigned long x     = 100000UL;`       |
+    | `long long`          | intero molto lungo                 |             8 byte | `long long x =   100000LL;`           |
+    | `unsigned long long` | intero molto lungo senza segno     |             8 byte | `unsigned long   long x = 100000ULL;` |
+    | `float`              | virgola mobile, precisione singola |             4 byte | `float x = 3.14f;    `                  |
+    | `double`             | virgola mobile, precisione doppia  |             8 byte | `double x = 3.14;    `                  |
+    | `long double`        | virgola mobile estesa              |    8, 12 o 16 byte | `long double x =     3.14L;`            |
+    | `_Bool` / `bool`     | valore booleano                    |      1 byte tipico | `bool ok = true; `                   |
+    | `void`               | assenza di valore                  |                  — | `void funzione   (void);`              |
 
 - un puntatore di tipo `void` può puntare a qualunque tipo di dato, rendendolo versatile
+
+- codici del manuale ```man``` di Linux e delle librerie installate. Il manuale documenta Linux e le librerie presenti sul sistema, non il linguaggio C in astratto.
+
+    | Sezione | Contenuto                            | Esempio                     |
+    | ------- | ------------------------------------ | --------------------------- |
+    | `1`     | comandi utente                       | `man 1 gcc`                 |
+    | `2`     | chiamate di sistema del kernel       | `man 2 open`                |
+    | `3`     | funzioni di libreria C               | `man 3 printf`              |
+    | `4`     | dispositivi e file speciali          | `man 4 null`                |
+    | `5`     | formati di file e configurazioni     | `man 5 passwd`              |
+    | `6`     | giochi                               | `man 6`                     |
+    | `7`     | panoramiche, protocolli, convenzioni | `man 7 pthreads`            |
+    | `8`     | comandi amministrativi               | `man 8 mount`               |
+    | `9`     | funzioni interne del kernel          | soprattutto sviluppo kernel |
