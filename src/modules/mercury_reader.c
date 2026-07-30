@@ -10,3 +10,4 @@ int get_gamma_dose_rate() {
     return result;
 }
 
+    

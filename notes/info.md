@@ -56,6 +56,8 @@ e restituisce l'errore al sistema operativo
 
 - un puntatore di tipo `void` può puntare a qualunque tipo di dato, rendendolo versatile
 
+
+
 - codici del manuale ```man``` di Linux e delle librerie installate. Il manuale documenta Linux e le librerie presenti sul sistema, non il linguaggio C in astratto.
 
     | Sezione | Contenuto                            | Esempio                     |
@@ -69,3 +71,7 @@ e restituisce l'errore al sistema operativo
     | `7`     | panoramiche, protocolli, convenzioni | `man 7 pthreads`            |
     | `8`     | comandi amministrativi               | `man 8 mount`               |
     | `9`     | funzioni interne del kernel          | soprattutto sviluppo kernel |
+
+
+- scrivere ```struct <struct-name>``` consiste nel creare una struttura con tag struct-name. il nome completo è quindi: ```struct timespec```. Per poter scrivere solo ```timespec <identifier>``` serve un alias con typedef: ```typedef struct timespec timespec;```
+

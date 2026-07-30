@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include "config.h"
 #include "mercury_reader.h"
-#include "utils.h"
 
 
 static atomic_bool acquisition_running;
