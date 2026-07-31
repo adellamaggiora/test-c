@@ -9,6 +9,6 @@ typedef struct
 } GammaDoseRateResult;
 
 
-GammaDoseRateResult get_gamma_dose_rate();
+GammaDoseRateResult get_gamma_dose_rate(void);
 
 #endif

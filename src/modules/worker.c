@@ -3,7 +3,6 @@
 #include <time.h>
 #include "mercury_reader.h"
 
-
 float get_gamma_dose_rate_avg(atomic_bool *acquisition_running)
 {
     double total = 0.0;
@@ -14,24 +13,25 @@ float get_gamma_dose_rate_avg(atomic_bool *acquisition_running)
 
     while (atomic_load(acquisition_running))
     {
-        float value = get_gamma_dose_rate();
+        GammaDoseRateResult value = get_gamma_dose_rate();
 
-        total += value;
-        count++;
+        if (value.is_new == true)
+        {
+            total += value.dose_rate;
+            count++;
+        }
 
         next.tv_sec += 1;
         clock_nanosleep(
             CLOCK_MONOTONIC,
             TIMER_ABSTIME,
             &next,
-            NULL
-        );
+            NULL);
     }
 
+    
     return count > 0 ? (float)(total / count) : 0.0f;
 }
-
-
 
 /*
 

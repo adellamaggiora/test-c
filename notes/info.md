@@ -1,5 +1,7 @@
 # C Best Practices and Info
 
+- i nomi delle variabili e delle funzioni sono in formato ```snake_case```
+
 - le struct si mettono nel file .h
 
 - non è necessario creare una cartella models contente le struct: si mettono direttamente nel modulo
@@ -27,9 +29,9 @@ e restituisce l'errore al sistema operativo
         #endif
     ```
 
-- per accedere ai campi di una struct si usa ```->``` quando si ha un puntatore a una struct, mentre si usa il ```.``` quando nella variabile c'è la struct stessa. ```config_ptr->operator_name``` equivale a ```(*config_ptr).operator_name;```
+- per accedere ai campi di una struct si usa ```->``` quando si ha un puntatore a una struct, mentre si usa il ```.``` quando nella variabile c'è la struct stessa. ```config_ptr->operator_name``` equivale a ```(*config_ptr).operator_name```
 
-- il tipo ```atomic_bool``` è usato per supportare le operazioni ```atomic_load()``` e ```atomic_store()```. Questo operazioni sono atomiche, ovvero indivisibili rispetto agli altri thread: nessun thread può osservare una scrittura parziale
+- il tipo ```atomic_bool``` è usato per supportare le operazioni ```atomic_load()``` e ```atomic_store()```. Questo operazioni sono atomiche, ovvero indivisibili rispetto agli altri thread: nessun thread può osservare una scrittura parziale. ```atomic_bool``` garantisce che le operazioni di lettura e scrittura su tale variabile siano atomiche e sicure tra tutti i thread senza l'uso di lock
 
 - dichiarare una variabile o una funzione con ```static``` significa che quella variabile è visibile solo nel file .c in cui è dichiarata (internal linkage)
 
@@ -73,5 +75,10 @@ e restituisce l'errore al sistema operativo
     | `9`     | funzioni interne del kernel          | soprattutto sviluppo kernel |
 
 
-- scrivere ```struct <struct-name>``` consiste nel creare una struttura con tag struct-name. il nome completo è quindi: ```struct timespec```. Per poter scrivere solo ```timespec <identifier>``` serve un alias con typedef: ```typedef struct timespec timespec;```
+- scrivere ```struct <struct-name>``` consiste nel creare una struttura con tag struct-name. il nome completo è quindi: ```struct timespec```. Per poter scrivere solo ```timespec <identifier>``` serve un alias con typedef: ```typedef struct timespec timespec```
 
+- ```0.0f``` è il valore zero ma indica esplicitamente che si tratta di un ```float```
+
+- ```GammaDoseRateResult get_gamma_dose_rate(void)``` la keyword ```void``` usata parametro nella segnatura di una funzione (file header .h) sta ad indicare che questa fuznione non riceve argomenti
+
+- Su Linux il comando ```apropos <topic>``` permette di fare una ricerca per topic delle pagine presenti nel manuale Linux ```man```

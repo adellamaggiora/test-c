@@ -3,10 +3,10 @@ CFLAGS = -g -O0 -Wall -Wextra -Wpedantic -std=gnu11
 INCLUDES = -Ilib/tomlc17 -Isrc/modules
 
 SOURCES = src/main.c \
-		src/modules/mercury_reader.c \
-		src/modules/worker.c \ 
-        src/modules/config.c \
-        lib/tomlc17/tomlc17.c
+	src/modules/config.c \
+	src/modules/mercury_reader.c \
+	src/modules/worker.c \
+    lib/tomlc17/tomlc17.c
 
 build/main: $(SOURCES)
 	mkdir -p build

@@ -29,7 +29,10 @@ int main(int argc, char *argv[])
     }
 
 
-    timer(5000);
+
+    acquisition_running = true;
+
+
 
     free_config(&config);
 
