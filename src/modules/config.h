@@ -2,14 +2,14 @@
 #define CONFIG_H
 
 
-typedef struct 
+typedef struct GammaTestParams
 {
     int acquisition_time_sec;
     int max_sensitivity_deviation_percent;
     int avg_dose_rate_ref;
 } GammaTestParams;
 
-typedef struct 
+typedef struct StartingVoltageTestParams
 {
     int voltage_steps;
     int min_detected_events;
@@ -19,13 +19,13 @@ typedef struct
     int hv_increment_per_step;
 } StartingVoltageTestParams;
 
-typedef struct 
+typedef struct TubeConfig
 {
     GammaTestParams gamma_test_params;
     StartingVoltageTestParams starting_voltage_test_params;
 } TubeConfig;
 
-typedef struct 
+typedef struct Config
 {
     char *operator_name;
     char *report_folder_path;

@@ -9,6 +9,7 @@ float get_gamma_dose_rate_avg(atomic_bool *acquisition_running)
     unsigned int count = 0;
 
     struct timespec next;
+    // legge il valore attuale di CLOCK_MONOTONIC  e lo scrive in next
     clock_gettime(CLOCK_MONOTONIC, &next);
 
     while (atomic_load(acquisition_running))
@@ -22,6 +23,9 @@ float get_gamma_dose_rate_avg(atomic_bool *acquisition_running)
         }
 
         next.tv_sec += 1;
+
+        // Attende fino alla prossima scadenza assoluta,
+        // impostata a un secondo dopo la precedente.
         clock_nanosleep(
             CLOCK_MONOTONIC,
             TIMER_ABSTIME,
@@ -29,7 +33,6 @@ float get_gamma_dose_rate_avg(atomic_bool *acquisition_running)
             NULL);
     }
 
-    
     return count > 0 ? (float)(total / count) : 0.0f;
 }
 

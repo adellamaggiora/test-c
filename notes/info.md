@@ -82,3 +82,14 @@ e restituisce l'errore al sistema operativo
 - ```GammaDoseRateResult get_gamma_dose_rate(void)``` la keyword ```void``` usata parametro nella segnatura di una funzione (file header .h) sta ad indicare che questa fuznione non riceve argomenti
 
 - Su Linux il comando ```apropos <topic>``` permette di fare una ricerca per topic delle pagine presenti nel manuale Linux ```man```
+
+- fine grained: distingue variazioni molto piccole
+
+- quando si fa riferimento a un campo dentro ad una struct, la segnalazione di ```<unnamed>``` significa semplicemente che la struct è anonima
+
+    <img src="./images/unnamed-struct.png" width="600">
+
+- ```typedef``` crea un nome alternativo per un tipo. Esempio:
+    ```c
+    typedef unsigned int uint;
+    ```

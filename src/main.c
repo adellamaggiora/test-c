@@ -30,7 +30,10 @@ int main(int argc, char *argv[])
 
 
 
+    config.small_tube.gamma_test_params.acquisition_time_sec;
     acquisition_running = true;
+
+
 
 
 
