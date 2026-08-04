@@ -27,13 +27,14 @@ serve per usare strumenti via browser, ad esempio `gdbgui`.
 ## Compilazione
 
 ```bash
-gcc -g -Wall -Wextra -std=c11 -o <output-file> <input-file>.c
+gcc -g -Wall -Wextra -std=c11 -pthread -o <output-file> <input-file>.c
 ```
 
 * `-g` -> include info utili per il debugging
 * `-Wall` -> abilita molti warning utili
 * `-Wextra` -> abilita warning aggiuntivi
 * `-std=c11` -> usa la versione C11 del linguaggio C
+* `-pthread` -> è l'API POSIX per creare e gestire thread in C
 * `-o <output-file>` -> indica il nome del file eseguibile prodotto
 * `<input-file>.c` -> file sorgente C, contenente la funzione `main()`
 

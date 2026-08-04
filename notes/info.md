@@ -93,3 +93,16 @@ e restituisce l'errore al sistema operativo
     ```c
     typedef unsigned int uint;
     ```
+
+- il valore restituito da una funzione eseguita dal ```pthread_create``` può essere recuperato con ```pthread_join()``` 
+
+- L'unica firma compatibile della funzione che viene data in pasto a ```pthread_create``` è 
+    ```c
+    void *<function_name>(void *args);
+    ```
+    ovvero una funzione che ritorna un ```void *``` e riceve un solo parametro ```void *``` (oovero un puntatore qualunque)
+
+- la funzione passata a ```pthread_create``` può essere successivamente interpretato come puntatore ad un altro tipo, viene fatto un cast
+    ```c
+    GammaDoseRateWorkerParams *params = args;
+    ```

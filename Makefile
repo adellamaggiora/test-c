@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -O0 -Wall -Wextra -Wpedantic -std=gnu11
+CFLAGS = -g -O0 -Wall -Wextra -Wpedantic -pthread -std=gnu11
 INCLUDES = -Ilib/tomlc17 -Isrc/modules
 
 SOURCES = src/main.c \

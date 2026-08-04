@@ -2,17 +2,21 @@
 #include <stdbool.h>
 #include <time.h>
 #include "mercury_reader.h"
+#include "worker.h"
 
-float get_gamma_dose_rate_avg(atomic_bool *acquisition_running)
+void *get_gamma_dose_rate_avg(void *args)
 {
-    double total = 0.0;
+
+    GammaDoseRateWorkerParams *params = args;
+
+    float total = 0.0;
     unsigned int count = 0;
 
     struct timespec next;
     // legge il valore attuale di CLOCK_MONOTONIC  e lo scrive in next
     clock_gettime(CLOCK_MONOTONIC, &next);
 
-    while (atomic_load(acquisition_running))
+    while (atomic_load(params->is_running))
     {
         GammaDoseRateResult value = get_gamma_dose_rate();
 
@@ -33,24 +37,10 @@ float get_gamma_dose_rate_avg(atomic_bool *acquisition_running)
             NULL);
     }
 
-    return count > 0 ? (float)(total / count) : 0.0f;
+    if(count > 0) {
+        params->avg = (float)(total / count);
+    }
+    
+    
+    return NULL;
 }
-
-/*
-
-    do_measurement
-
-    time1 = now();
-
-    start_measurement();
-
-    time2 = now();
-
-    diff = time2 - time1();
-
-    remaining = 1000 - diff
-
-    sleep(remaining)
-
-
-\*/
