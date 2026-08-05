@@ -14,7 +14,7 @@ typedef struct GammaDoseRateWorkerParams {
 
 void *get_gamma_dose_rate_avg(void *args);
 
-
+void test_gamma_tubes(int acquisition_time_sec, size_t total_threads);
 
 
 #endif

@@ -5,7 +5,7 @@ INCLUDES = -Ilib/tomlc17 -Isrc/modules
 SOURCES = src/main.c \
 	src/modules/config.c \
 	src/modules/mercury_reader.c \
-	src/modules/worker.c \
+	src/modules/tube_test/gamma.c \
     lib/tomlc17/tomlc17.c
 
 build/main: $(SOURCES)
