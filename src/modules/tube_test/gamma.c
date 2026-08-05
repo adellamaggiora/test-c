@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include "mercury_reader.h"
 #include "tube_test/gamma.h"
 
@@ -48,37 +49,58 @@ void *get_gamma_dose_rate_avg(void *args)
     return NULL;
 }
 
-
-void test_gamma_tubes(int acquisition_time_sec, size_t total_threads)
+int test_gamma_tubes(unsigned int acquisition_time_sec, size_t total_threads)
 {
 
-    static atomic_bool acquisition_running;
+    atomic_bool acquisition_running;
+    atomic_init(&acquisition_running, true);
 
-    pthread_t *threads = malloc(total_threads * sizeof(pthread_t));
-
-    if (threads == NULL)
+    if (total_threads == 0)
     {
+        return EXIT_FAILURE;
+    }
+    
+
+    pthread_t *workers = malloc(total_threads * sizeof(pthread_t));
+    GammaDoseRateWorkerParams *workers_params = malloc(total_threads * sizeof(GammaDoseRateWorkerParams));
+    size_t total_workers = 0;
+
+    if (workers == NULL || workers_params == NULL)
+    {
+        free(workers);
+        free(workers_params);
         perror("malloc");
         return EXIT_FAILURE;
     }
 
     for (size_t i = 0; i < total_threads; i++)
     {
-        GammaDoseRateWorkerParams worker_params = {
-            .avg = 0.0f,
-            .is_running = &acquisition_running};
+        workers_params[total_workers].avg = 0.0f;
+        workers_params[total_workers].is_running = &acquisition_running;
 
-        pthread_t worker;
-        pthread_create(&worker, NULL, get_gamma_dose_rate_avg, &worker_params);
-        threads[i] = worker;
+        int thread_created = pthread_create(
+            &workers[total_workers],
+            NULL,
+            get_gamma_dose_rate_avg,
+            &workers_params[total_workers]);
+
+        if (thread_created == 0)
+        {
+            total_workers++;
+        }
     }
 
     sleep(acquisition_time_sec);
     atomic_store(&acquisition_running, false);
 
     // attende che termini il thread
-    for (size_t i = 0; i < total_threads; i++)
+    for (size_t i = 0; i < total_workers; i++)
     {
-        pthread_join(threads[i], NULL);
+        pthread_join(workers[i], NULL);
     }
+
+    free(workers);
+    free(workers_params);
+
+    return EXIT_SUCCESS;
 }

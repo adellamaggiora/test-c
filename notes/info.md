@@ -106,3 +106,14 @@ e restituisce l'errore al sistema operativo
     ```c
     GammaDoseRateWorkerParams *params = args;
     ```
+
+- la memoria va liberata con l'utilizzo di ```free()``` solo per la memoria ottenuta con ```malloc```, ```calloc``` o ```realloc```. 
+
+- operatori per l'allocazione di memoria
+    - ```malloc```: alloca un blocco di memoria senza pulirlo
+    - ```calloc```: alloca la memoria e la azzera completamente (imposta ogni byte a zero)
+    - ```realloc```: serve a modificare la dimensione di un blocco di memoria precedentemente allocato con ```malloc``` o ```calloc```.
+
+- ```struct``` Una struttura è un contenitore che raggruppa più variabili sotto un unico nome, quindi è un blocco di memoria che contiene tutti i suoi campi. I suoi campi possono essere dei valori oppure dei puntatori.
+
+- un array è un blocco di elementi consecutivi ```int a[3] = {10, 20, 30}```. Il nome ```a```, nella maggior parte delle espressioni, viene convertito nell'indirizzo del primo elemento: ```&a[0]```. Con ```malloc```, invece si ottiene sempre un puntatore a un blocco di memoria allocato dinamicamente, in questo caso non è possibile conoscerne la lunghezza.
