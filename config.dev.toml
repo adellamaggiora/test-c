@@ -5,12 +5,12 @@ execution_mode = "simulated"
 
 [small_tube.test_gamma]
 acquisition_time_sec = 100
-max_sensitivity_deviation_percent = 5
+max_deviation_percent = 5
 avg_dose_rate_ref = 10
 
 [large_tube.test_gamma]
 acquisition_time_sec = 100
-max_sensitivity_deviation_percent = 5
+max_deviation_percent = 5
 avg_dose_rate_ref = 10
 
 [small_tube.test_starting_voltage]

@@ -80,8 +80,8 @@ int read_config(const char *file_path, Config *config)
         read_int(root, "small_tube.test_gamma.acquisition_time_sec",
                  &config->small_tube.gamma_test_params.acquisition_time_sec) ||
 
-        read_int(root, "small_tube.test_gamma.max_sensitivity_deviation_percent",
-                 &config->small_tube.gamma_test_params.max_sensitivity_deviation_percent) ||
+        read_int(root, "small_tube.test_gamma.max_deviation_percent",
+                 &config->small_tube.gamma_test_params.max_deviation_percent) ||
 
         read_int(root, "small_tube.test_gamma.avg_dose_rate_ref",
                 &config->small_tube.gamma_test_params.avg_dose_rate_ref) ||
@@ -89,8 +89,8 @@ int read_config(const char *file_path, Config *config)
         read_int(root, "large_tube.test_gamma.acquisition_time_sec",
                  &config->large_tube.gamma_test_params.acquisition_time_sec) ||
 
-        read_int(root, "large_tube.test_gamma.max_sensitivity_deviation_percent",
-                 &config->large_tube.gamma_test_params.max_sensitivity_deviation_percent) ||      
+        read_int(root, "large_tube.test_gamma.max_deviation_percent",
+                 &config->large_tube.gamma_test_params.max_deviation_percent) ||      
 
         read_int(root, "small_tube.test_starting_voltage.voltage_steps",
                  &config->small_tube.starting_voltage_test_params.voltage_steps) ||

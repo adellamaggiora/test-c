@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "mercury_reader.h"
 #include "tube_test/gamma.h"
 
@@ -59,7 +60,6 @@ int test_gamma_tubes(unsigned int acquisition_time_sec, size_t total_threads)
     {
         return EXIT_FAILURE;
     }
-    
 
     pthread_t *workers = malloc(total_threads * sizeof(pthread_t));
     GammaDoseRateWorkerParams *workers_params = malloc(total_threads * sizeof(GammaDoseRateWorkerParams));
@@ -103,4 +103,14 @@ int test_gamma_tubes(unsigned int acquisition_time_sec, size_t total_threads)
     free(workers_params);
 
     return EXIT_SUCCESS;
+}
+
+static bool gamma_test_ok(float gamma_ref, float gamma_out, size_t max_deviation_percent)
+{
+    if (gamma_out == 0)
+    {
+        perror("zero division");
+        return EXIT_FAILURE;
+    }
+    return fabsf((gamma_out - gamma_ref) / gamma_out) < max_deviation_percent;
 }
