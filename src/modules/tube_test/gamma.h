@@ -4,17 +4,27 @@
 // include va dopo la header guard he deve racchiudere tuttom il contenuto del file
 // perchè così si evita che le dichiarazioni dell'header vengano processate più volte
 #include <stdatomic.h>
+#include <stdbool.h>
 
-typedef struct GammaDoseRateWorkerParams {
+typedef struct GammaDoseRateWorkerParams
+{
     float avg;
-    // puntatore perchè condivisa con il main
-    atomic_bool *is_running;
+    atomic_bool *acquisition_running;
 } GammaDoseRateWorkerParams;
 
 
-void *get_gamma_dose_rate_avg(void *args);
+typedef struct GammaDoseRateTestResult {
+    float avg;
+    bool thread_started;
+    bool ref_tube;
+    bool test_passed;
+} GammaDoseRateTestResult;
 
-void test_gamma_tubes(int acquisition_time_sec, size_t total_threads);
+typedef struct GammaDoseRateTestResults {
+    size_t count;
+    GammaDoseRateTestResult *test_results;
+} GammaDoseRateTestResults;
 
+GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t total_tubes, size_t ref_tube_index);
 
 #endif

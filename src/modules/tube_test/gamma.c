@@ -4,12 +4,13 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include "mercury_reader.h"
 #include "tube_test/gamma.h"
 
-void *get_gamma_dose_rate_avg(void *args)
+static void *get_tube_gamma_dose_rate_avg(void *args)
 {
 
     GammaDoseRateWorkerParams *params = args;
@@ -21,7 +22,7 @@ void *get_gamma_dose_rate_avg(void *args)
     // legge il valore attuale di CLOCK_MONOTONIC  e lo scrive in next
     clock_gettime(CLOCK_MONOTONIC, &next);
 
-    while (atomic_load(params->is_running))
+    while (atomic_load(params->acquisition_running))
     {
         GammaDoseRateResult value = get_gamma_dose_rate();
 
@@ -50,67 +51,97 @@ void *get_gamma_dose_rate_avg(void *args)
     return NULL;
 }
 
-int test_gamma_tubes(unsigned int acquisition_time_sec, size_t total_threads)
+static bool gamma_test_ok(float gamma_ref, float gamma_out, size_t max_deviation_percent)
 {
-
-    atomic_bool acquisition_running;
-    atomic_init(&acquisition_running, true);
-
-    if (total_threads == 0)
+    if (gamma_out == 0)
     {
-        return EXIT_FAILURE;
+        return false;
     }
 
-    pthread_t *workers = malloc(total_threads * sizeof(pthread_t));
-    GammaDoseRateWorkerParams *workers_params = malloc(total_threads * sizeof(GammaDoseRateWorkerParams));
-    size_t total_workers = 0;
+    float deviation_percent = fabsf((gamma_out - gamma_ref) / gamma_out) * 100.0f;
 
-    if (workers == NULL || workers_params == NULL)
+    return deviation_percent < (float)max_deviation_percent;
+}
+
+GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t total_tubes, size_t ref_tube_index)
+{
+
+    GammaDoseRateTestResults result = {
+        .count = 0,
+        .test_results = NULL};
+
+    if (total_tubes == 0 || ref_tube_index >= total_tubes)
+    {
+        return result;
+    }
+
+    pthread_t *workers = malloc(total_tubes * sizeof(pthread_t));
+    GammaDoseRateWorkerParams *workers_params = malloc(total_tubes * sizeof(GammaDoseRateWorkerParams));
+    result.test_results = malloc(total_tubes * sizeof(GammaDoseRateTestResult));
+
+    if (workers == NULL || workers_params == NULL || result.test_results == NULL)
     {
         free(workers);
         free(workers_params);
+        free(result.test_results);
+        result.test_results = NULL;
+
         perror("malloc");
-        return EXIT_FAILURE;
+        return result;
     }
 
-    for (size_t i = 0; i < total_threads; i++)
+    result.count = total_tubes;
+    // start acquisition
+    atomic_bool acquisition_running;
+    atomic_init(&acquisition_running, true);
+
+    for (size_t i = 0; i < total_tubes; i++)
     {
-        workers_params[total_workers].avg = 0.0f;
-        workers_params[total_workers].is_running = &acquisition_running;
+        // worker params
+        workers_params[i].avg = 0.0f;
+        workers_params[i].acquisition_running = &acquisition_running;
+        // test results
+        result.test_results[i].avg = 0.0f;
+        result.test_results[i].ref_tube = (bool)(i == ref_tube_index);
+        result.test_results[i].thread_started = false;
+        result.test_results[i].test_passed = false;
 
-        int thread_created = pthread_create(
-            &workers[total_workers],
+        int error = pthread_create(
+            &workers[i],
             NULL,
-            get_gamma_dose_rate_avg,
-            &workers_params[total_workers]);
+            get_tube_gamma_dose_rate_avg,
+            &workers_params[i]);
 
-        if (thread_created == 0)
+        if (error == 0)
         {
-            total_workers++;
+            result.test_results[i].thread_started = true;
+        }
+        else
+        {
+            fprintf(stderr,
+                    "pthread_create tube %zu: %s\n",
+                    i,
+                    strerror(error));
         }
     }
 
     sleep(acquisition_time_sec);
     atomic_store(&acquisition_running, false);
 
-    // attende che termini il thread
-    for (size_t i = 0; i < total_workers; i++)
+    // terminazione dei thread: avg viene valorizzata
+    for (size_t i = 0; i < total_tubes; i++)
     {
-        pthread_join(workers[i], NULL);
+        if (result.test_results[i].thread_started == true)
+        {
+            pthread_join(workers[i], NULL);
+            result.test_results[i].avg = workers_params[i].avg;
+        }
     }
+
+    // controllo media del tubo di riferimento @todo
 
     free(workers);
     free(workers_params);
 
-    return EXIT_SUCCESS;
-}
-
-static bool gamma_test_ok(float gamma_ref, float gamma_out, size_t max_deviation_percent)
-{
-    if (gamma_out == 0)
-    {
-        perror("zero division");
-        return EXIT_FAILURE;
-    }
-    return fabsf((gamma_out - gamma_ref) / gamma_out) < max_deviation_percent;
+    return result;
 }
