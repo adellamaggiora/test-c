@@ -22,7 +22,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    test_gamma_tubes(config.small_tube.gamma_test_params.acquisition_time_sec, 4);
+    GammaDoseRateTestResults gamma_dose_rate_test_results = 
+        test_gamma_tubes(config.small_tube.gamma_test_params.acquisition_time_sec, 6, 1);
 
     free_config(&config);
 

@@ -119,3 +119,17 @@ e restituisce l'errore al sistema operativo
 - un array è un blocco di elementi consecutivi ```int a[3] = {10, 20, 30}```. Il nome ```a```, nella maggior parte delle espressioni, viene convertito nell'indirizzo del primo elemento: ```&a[0]```. Con ```malloc```, invece si ottiene sempre un puntatore a un blocco di memoria allocato dinamicamente, in questo caso non è possibile conoscerne la lunghezza.
 
 - le funzioni static devono stare solo nel file .c e non nel .h. Di fatto static rende "privata" la funzione, ovvero visibile solo dentro ad un certo file.
+
+- Eccezione: evento anomalo o errore che interrompe il normale flusso delle istruzioni
+
+- C non ha eccezioni, quindi la gestione degli errori è soprattutto una combinazione di segnalazione, propagazione e decisione su cosa fare dopo
+
+## Gestione errori in C
+
+- ```fprintf(stderr, ...)``` stampa un messaggio scelto
+
+- ```perror``` stampa un messaggio + descrizione di ```errno```
+
+- ```exit``` termina immediatamente il programma senza passare da un handler al livello superiore
+
+- ```abort``` termina il programma in modo anomalo e immediato

@@ -6,6 +6,15 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 
+typedef enum
+{
+    GAMMA_TEST_OK = 0,
+    GAMMA_TEST_INVALID_ARGUMENT,
+    GAMMA_TEST_MALLOC_ERROR,
+    GAMMA_TEST_REF_AVG_ERROR
+} GammaDoseRateTestError;
+
+
 typedef struct GammaDoseRateWorkerParams
 {
     float avg;

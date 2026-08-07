@@ -118,10 +118,7 @@ GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t to
         }
         else
         {
-            fprintf(stderr,
-                    "pthread_create tube %zu: %s\n",
-                    i,
-                    strerror(error));
+            fprintf(stderr, "pthread_create tube %zu: %s\n", i, strerror(error));
         }
     }
 
@@ -137,6 +134,16 @@ GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t to
             result.test_results[i].avg = workers_params[i].avg;
         }
     }
+
+    // la media del tubo di riferimento
+    float ref_avg = result.test_results[ref_tube_index].avg;
+    if (ref_avg == 0.0f)
+    {
+        fprintf(stderr, "tube ref average not calculated");
+    }
+    
+
+
 
     // controllo media del tubo di riferimento @todo
 
