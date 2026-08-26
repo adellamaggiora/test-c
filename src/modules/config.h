@@ -14,9 +14,14 @@ typedef struct StartingVoltageTestParams
     int voltage_steps;
     int min_detected_events;
     int step_acquisition_time_sec;
+    int start_voltage;
     int min_voltage;
     int max_voltage;
     int hv_increment_per_step;
+    int reference_voltage;
+    int max_deviation_percent;
+    int voltage_settling_time_ms;
+    int absolute_max_voltage;
 } StartingVoltageTestParams;
 
 typedef struct TubeConfig

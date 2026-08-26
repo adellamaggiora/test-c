@@ -92,6 +92,9 @@ int read_config(const char *file_path, Config *config)
         read_int(root, "large_tube.test_gamma.max_deviation_percent",
                  &config->large_tube.gamma_test_params.max_deviation_percent) ||      
 
+        read_int(root, "large_tube.test_gamma.avg_dose_rate_ref",
+                 &config->large_tube.gamma_test_params.avg_dose_rate_ref) ||
+
         read_int(root, "small_tube.test_starting_voltage.voltage_steps",
                  &config->small_tube.starting_voltage_test_params.voltage_steps) ||
 
@@ -100,6 +103,9 @@ int read_config(const char *file_path, Config *config)
 
         read_int(root, "small_tube.test_starting_voltage.step_acquisition_time_sec",
                  &config->small_tube.starting_voltage_test_params.step_acquisition_time_sec) ||
+
+        read_int(root, "small_tube.test_starting_voltage.start_voltage",
+                 &config->small_tube.starting_voltage_test_params.start_voltage) ||
 
         read_int(root, "small_tube.test_starting_voltage.min_voltage",
                  &config->small_tube.starting_voltage_test_params.min_voltage) ||
@@ -110,6 +116,18 @@ int read_config(const char *file_path, Config *config)
         read_int(root, "small_tube.test_starting_voltage.hv_increment_per_step",
                  &config->small_tube.starting_voltage_test_params.hv_increment_per_step) ||
 
+        read_int(root, "small_tube.test_starting_voltage.reference_voltage",
+                 &config->small_tube.starting_voltage_test_params.reference_voltage) ||
+
+        read_int(root, "small_tube.test_starting_voltage.max_deviation_percent",
+                 &config->small_tube.starting_voltage_test_params.max_deviation_percent) ||
+
+        read_int(root, "small_tube.test_starting_voltage.voltage_settling_time_ms",
+                 &config->small_tube.starting_voltage_test_params.voltage_settling_time_ms) ||
+
+        read_int(root, "small_tube.test_starting_voltage.absolute_max_voltage",
+                 &config->small_tube.starting_voltage_test_params.absolute_max_voltage) ||
+
         read_int(root, "large_tube.test_starting_voltage.voltage_steps",
                  &config->large_tube.starting_voltage_test_params.voltage_steps) ||
 
@@ -119,6 +137,9 @@ int read_config(const char *file_path, Config *config)
         read_int(root, "large_tube.test_starting_voltage.step_acquisition_time_sec",
                  &config->large_tube.starting_voltage_test_params.step_acquisition_time_sec) ||
 
+        read_int(root, "large_tube.test_starting_voltage.start_voltage",
+                 &config->large_tube.starting_voltage_test_params.start_voltage) ||
+
         read_int(root, "large_tube.test_starting_voltage.min_voltage",
                  &config->large_tube.starting_voltage_test_params.min_voltage) ||
 
@@ -126,7 +147,19 @@ int read_config(const char *file_path, Config *config)
                  &config->large_tube.starting_voltage_test_params.max_voltage) ||
 
         read_int(root, "large_tube.test_starting_voltage.hv_increment_per_step",
-                 &config->large_tube.starting_voltage_test_params.hv_increment_per_step);
+                 &config->large_tube.starting_voltage_test_params.hv_increment_per_step) ||
+
+        read_int(root, "large_tube.test_starting_voltage.reference_voltage",
+                 &config->large_tube.starting_voltage_test_params.reference_voltage) ||
+
+        read_int(root, "large_tube.test_starting_voltage.max_deviation_percent",
+                 &config->large_tube.starting_voltage_test_params.max_deviation_percent) ||
+
+        read_int(root, "large_tube.test_starting_voltage.voltage_settling_time_ms",
+                 &config->large_tube.starting_voltage_test_params.voltage_settling_time_ms) ||
+
+        read_int(root, "large_tube.test_starting_voltage.absolute_max_voltage",
+                 &config->large_tube.starting_voltage_test_params.absolute_max_voltage);
 
     toml_free(parsed);
 

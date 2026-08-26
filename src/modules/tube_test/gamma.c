@@ -141,9 +141,6 @@ GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t to
     {
         fprintf(stderr, "tube ref average not calculated");
     }
-    
-
-
 
     // controllo media del tubo di riferimento @todo
 
