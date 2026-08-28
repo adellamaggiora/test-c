@@ -27,6 +27,29 @@ static int read_int(
     return 0;
 }
 
+static int read_double(
+    toml_datum_t root,
+    const char *path,
+    double *destination
+) {
+    toml_datum_t value = toml_seek(root, path);
+
+    if (value.type == TOML_FP64) {
+        *destination = value.u.fp64;
+        return 0;
+    }
+
+    if (value.type == TOML_INT64) {
+        *destination = (double)value.u.int64;
+        return 0;
+    }
+
+    fprintf(stderr,
+            "Configuration error: '%s' must be a number\n",
+            path);
+    return -1;
+}
+
 static int read_string(
     toml_datum_t root,
     const char *path,
@@ -159,7 +182,19 @@ int read_config(const char *file_path, Config *config)
                  &config->large_tube.starting_voltage_test_params.voltage_settling_time_ms) ||
 
         read_int(root, "large_tube.test_starting_voltage.absolute_max_voltage",
-                 &config->large_tube.starting_voltage_test_params.absolute_max_voltage);
+                 &config->large_tube.starting_voltage_test_params.absolute_max_voltage) ||
+
+        read_double(root, "small_tube.test_dead_time.reference_dead_time_us",
+                    &config->small_tube.dead_time_test_params.reference_dead_time_us) ||
+
+        read_double(root, "small_tube.test_dead_time.max_deviation_percent",
+                    &config->small_tube.dead_time_test_params.max_deviation_percent) ||
+
+        read_double(root, "large_tube.test_dead_time.reference_dead_time_us",
+                    &config->large_tube.dead_time_test_params.reference_dead_time_us) ||
+
+        read_double(root, "large_tube.test_dead_time.max_deviation_percent",
+                    &config->large_tube.dead_time_test_params.max_deviation_percent);
 
     toml_free(parsed);
 

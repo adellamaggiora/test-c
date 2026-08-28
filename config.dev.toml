@@ -26,6 +26,10 @@ max_deviation_percent = 10
 voltage_settling_time_ms = 100
 absolute_max_voltage = 500
 
+[small_tube.test_dead_time]
+reference_dead_time_us = 190.0
+max_deviation_percent = 5.0
+
 [large_tube.test_starting_voltage]
 voltage_steps = 10
 min_detected_events = 6
@@ -38,3 +42,7 @@ reference_voltage = 340
 max_deviation_percent = 10
 voltage_settling_time_ms = 100
 absolute_max_voltage = 500
+
+[large_tube.test_dead_time]
+reference_dead_time_us = 190.0
+max_deviation_percent = 5.0

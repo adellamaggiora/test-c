@@ -8,11 +8,15 @@ SOURCES = src/main.c \
 	src/modules/mercury_reader.c \
 	src/modules/tube_test/gamma.c \
 	src/modules/tube_test/starting_voltage.c \
+	src/modules/tube_test/dead_time.c \
     lib/tomlc17/tomlc17.c
 
 TEST_SOURCES = tests/test_starting_voltage.c \
 	src/modules/mercury_reader.c \
 	src/modules/tube_test/starting_voltage.c
+
+DEAD_TIME_TEST_SOURCES = tests/test_dead_time.c \
+	src/modules/tube_test/dead_time.c
 
 build/main: $(SOURCES)
 	mkdir -p build
@@ -22,8 +26,13 @@ build/test_starting_voltage: $(TEST_SOURCES)
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) $(TEST_SOURCES) -o build/test_starting_voltage $(LDLIBS)
 
-test: build/test_starting_voltage
+build/test_dead_time: $(DEAD_TIME_TEST_SOURCES)
+	mkdir -p build
+	$(CC) $(CFLAGS) $(INCLUDES) $(DEAD_TIME_TEST_SOURCES) -o build/test_dead_time $(LDLIBS)
+
+test: build/test_starting_voltage build/test_dead_time
 	./build/test_starting_voltage
+	./build/test_dead_time
 
 clean:
 	rm -rf build

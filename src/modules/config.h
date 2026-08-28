@@ -24,10 +24,17 @@ typedef struct StartingVoltageTestParams
     int absolute_max_voltage;
 } StartingVoltageTestParams;
 
+typedef struct DeadTimeTestParams
+{
+    double reference_dead_time_us;
+    double max_deviation_percent;
+} DeadTimeTestParams;
+
 typedef struct TubeConfig
 {
     GammaTestParams gamma_test_params;
     StartingVoltageTestParams starting_voltage_test_params;
+    DeadTimeTestParams dead_time_test_params;
 } TubeConfig;
 
 typedef struct Config
