@@ -1,4 +1,5 @@
 #include <math.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include "tube_test/dead_time.h"
 
@@ -25,6 +26,46 @@ static double calculate_deviation_percent(
         reference_dead_time_us) * 100.0;
 }
 
+typedef struct
+{
+    const DeadTimeTestParams *params;
+    double measured_value;
+    DeadTimeTestResult *result;
+} DeadTimeWorkerParams;
+
+static void *test_dead_time_worker(void *args)
+{
+    DeadTimeWorkerParams *worker = args;
+    DeadTimeTestResult *result = worker->result;
+    double measured_value = worker->measured_value;
+
+    result->measured_dead_time_us = measured_value;
+    result->reference_dead_time_us =
+        worker->params->reference_dead_time_us;
+
+    if (!isfinite(measured_value))
+    {
+        result->status = DEAD_TIME_VALUE_NOT_FINITE;
+        return NULL;
+    }
+
+    if (measured_value <= 0.0)
+    {
+        result->status = DEAD_TIME_VALUE_NOT_POSITIVE;
+        return NULL;
+    }
+
+    result->status = DEAD_TIME_VALUE_VALID;
+    result->deviation_percent = calculate_deviation_percent(
+        measured_value,
+        worker->params->reference_dead_time_us);
+    result->test_passed =
+        result->deviation_percent <
+        worker->params->max_deviation_percent;
+
+    return NULL;
+}
+
 DeadTimeTestResults test_dead_times(
     const DeadTimeTestParams *params,
     const double *measured_dead_times_us,
@@ -48,8 +89,20 @@ DeadTimeTestResults test_dead_times(
         total_tubes,
         sizeof(DeadTimeTestResult));
 
-    if (results.test_results == NULL)
+    pthread_t *workers = calloc(total_tubes, sizeof(pthread_t));
+    DeadTimeWorkerParams *worker_params = calloc(
+        total_tubes,
+        sizeof(DeadTimeWorkerParams));
+    bool *worker_started = calloc(total_tubes, sizeof(bool));
+
+    if (results.test_results == NULL || workers == NULL ||
+        worker_params == NULL || worker_started == NULL)
     {
+        free(results.test_results);
+        free(workers);
+        free(worker_params);
+        free(worker_started);
+        results.test_results = NULL;
         results.error = DEAD_TIME_TEST_MALLOC_ERROR;
         return results;
     }
@@ -58,35 +111,37 @@ DeadTimeTestResults test_dead_times(
 
     for (size_t i = 0; i < total_tubes; i++)
     {
-        DeadTimeTestResult *tube_result = &results.test_results[i];
-        double measured_value = measured_dead_times_us[i];
+        results.test_results[i].tube_index = i;
+        worker_params[i] = (DeadTimeWorkerParams){
+            .params = params,
+            .measured_value = measured_dead_times_us[i],
+            .result = &results.test_results[i]};
 
-        tube_result->tube_index = i;
-        tube_result->measured_dead_time_us = measured_value;
-        tube_result->reference_dead_time_us =
-            params->reference_dead_time_us;
-
-        if (!isfinite(measured_value))
+        if (pthread_create(
+                &workers[i],
+                NULL,
+                test_dead_time_worker,
+                &worker_params[i]) == 0)
         {
-            tube_result->status = DEAD_TIME_VALUE_NOT_FINITE;
-            continue;
+            worker_started[i] = true;
         }
-
-        if (measured_value <= 0.0)
+        else
         {
-            tube_result->status = DEAD_TIME_VALUE_NOT_POSITIVE;
-            continue;
+            results.test_results[i].status = DEAD_TIME_THREAD_ERROR;
         }
-
-        tube_result->status = DEAD_TIME_VALUE_VALID;
-        tube_result->deviation_percent =
-            calculate_deviation_percent(
-                measured_value,
-                params->reference_dead_time_us);
-        tube_result->test_passed =
-            tube_result->deviation_percent <
-            params->max_deviation_percent;
     }
+
+    for (size_t i = 0; i < total_tubes; i++)
+    {
+        if (worker_started[i])
+        {
+            pthread_join(workers[i], NULL);
+        }
+    }
+
+    free(workers);
+    free(worker_params);
+    free(worker_started);
 
     return results;
 }
@@ -112,6 +167,8 @@ const char *dead_time_status_string(DeadTimeStatus status)
             return "not_finite";
         case DEAD_TIME_VALUE_NOT_POSITIVE:
             return "not_positive";
+        case DEAD_TIME_THREAD_ERROR:
+            return "thread_error";
     }
 
     return "unknown";

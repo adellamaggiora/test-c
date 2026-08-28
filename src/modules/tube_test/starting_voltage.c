@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
 #include "mercury_reader.h"
@@ -59,25 +60,6 @@ static void add_one_second(struct timespec *time)
     time->tv_sec++;
 }
 
-static bool tube_is_pending(const StartingVoltageTestResult *result)
-{
-    return result->status == STARTING_VOLTAGE_PENDING;
-}
-
-static bool any_tube_is_pending(
-    const StartingVoltageTestResults *results)
-{
-    for (size_t i = 0; i < results->count; i++)
-    {
-        if (tube_is_pending(&results->test_results[i]))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 static float calculate_deviation_percent(
     int measured_voltage,
     int reference_voltage)
@@ -85,6 +67,106 @@ static float calculate_deviation_percent(
     return fabsf(
         ((float)measured_voltage - (float)reference_voltage) /
         (float)reference_voltage) * 100.0f;
+}
+
+typedef struct
+{
+    const StartingVoltageTestParams *params;
+    size_t tube_index;
+    StartingVoltageTestResult *result;
+} StartingVoltageWorkerParams;
+
+static void *test_starting_voltage_worker(void *args)
+{
+    StartingVoltageWorkerParams *worker = args;
+    const StartingVoltageTestParams *params = worker->params;
+    StartingVoltageTestResult *result = worker->result;
+
+    for (int step = 0; step < params->voltage_steps; step++)
+    {
+        int voltage = params->start_voltage +
+            step * params->hv_increment_per_step;
+
+        if (set_hv(worker->tube_index, true, voltage) !=
+            MERCURY_READER_OK)
+        {
+            result->status = STARTING_VOLTAGE_SET_HV_ERROR;
+            break;
+        }
+
+        sleep_milliseconds(params->voltage_settling_time_ms);
+
+        unsigned int step_events = 0;
+        struct timespec next_sample;
+        clock_gettime(CLOCK_MONOTONIC, &next_sample);
+
+        for (int second = 0;
+             second < params->step_acquisition_time_sec;
+             second++)
+        {
+            add_one_second(&next_sample);
+
+            while (clock_nanosleep(
+                       CLOCK_MONOTONIC,
+                       TIMER_ABSTIME,
+                       &next_sample,
+                       NULL) == EINTR)
+            {
+            }
+
+            GammaCountsResult measurement =
+                get_instant_measurement_gm(worker->tube_index);
+
+            if (measurement.error != MERCURY_READER_OK)
+            {
+                result->status =
+                    STARTING_VOLTAGE_MEASUREMENT_ERROR;
+                break;
+            }
+
+            if (measurement.is_new)
+            {
+                if (UINT_MAX - step_events < measurement.events)
+                {
+                    step_events = UINT_MAX;
+                }
+                else
+                {
+                    step_events += measurement.events;
+                }
+            }
+        }
+
+        if (result->status == STARTING_VOLTAGE_MEASUREMENT_ERROR)
+        {
+            break;
+        }
+
+        if (step_events >= (unsigned int)params->min_detected_events)
+        {
+            result->status = STARTING_VOLTAGE_FOUND;
+            result->starting_voltage = voltage;
+            result->detection_step = (size_t)step;
+            result->detected_events = step_events;
+            result->detected_on_first_step = (step == 0);
+            result->deviation_percent =
+                calculate_deviation_percent(
+                    voltage,
+                    params->reference_voltage);
+            result->test_passed =
+                result->deviation_percent <
+                (float)params->max_deviation_percent;
+            break;
+        }
+    }
+
+    if (result->status == STARTING_VOLTAGE_PENDING)
+    {
+        result->status = STARTING_VOLTAGE_NOT_FOUND;
+    }
+
+    set_hv(worker->tube_index, false, 0);
+    return NULL;
 }
 
 static bool disable_all_tubes(size_t total_tubes)
@@ -121,14 +203,19 @@ StartingVoltageTestResults test_starting_voltage_tubes(
         total_tubes,
         sizeof(StartingVoltageTestResult));
 
-    unsigned int *step_events = calloc(
+    pthread_t *workers = calloc(total_tubes, sizeof(pthread_t));
+    StartingVoltageWorkerParams *worker_params = calloc(
         total_tubes,
-        sizeof(unsigned int));
+        sizeof(StartingVoltageWorkerParams));
+    bool *worker_started = calloc(total_tubes, sizeof(bool));
 
-    if (results.test_results == NULL || step_events == NULL)
+    if (results.test_results == NULL || workers == NULL ||
+        worker_params == NULL || worker_started == NULL)
     {
         free(results.test_results);
-        free(step_events);
+        free(workers);
+        free(worker_params);
+        free(worker_started);
         results.test_results = NULL;
         results.error = STARTING_VOLTAGE_TEST_MALLOC_ERROR;
         return results;
@@ -140,112 +227,39 @@ StartingVoltageTestResults test_starting_voltage_tubes(
     {
         results.test_results[i].tube_index = i;
         results.test_results[i].status = STARTING_VOLTAGE_PENDING;
-    }
 
-    for (int step = 0;
-         step < params->voltage_steps && any_tube_is_pending(&results);
-         step++)
-    {
-        int voltage = params->start_voltage +
-            step * params->hv_increment_per_step;
+        worker_params[i] = (StartingVoltageWorkerParams){
+            .params = params,
+            .tube_index = i,
+            .result = &results.test_results[i]};
 
-        for (size_t i = 0; i < total_tubes; i++)
+        if (pthread_create(
+                &workers[i],
+                NULL,
+                test_starting_voltage_worker,
+                &worker_params[i]) == 0)
         {
-            step_events[i] = 0;
-
-            if (tube_is_pending(&results.test_results[i]) &&
-                set_hv(i, true, voltage) != MERCURY_READER_OK)
-            {
-                results.test_results[i].status =
-                    STARTING_VOLTAGE_SET_HV_ERROR;
-            }
+            worker_started[i] = true;
         }
-
-        sleep_milliseconds(params->voltage_settling_time_ms);
-
-        struct timespec next_sample;
-        clock_gettime(CLOCK_MONOTONIC, &next_sample);
-
-        for (int second = 0;
-             second < params->step_acquisition_time_sec;
-             second++)
+        else
         {
-            add_one_second(&next_sample);
-            clock_nanosleep(
-                CLOCK_MONOTONIC,
-                TIMER_ABSTIME,
-                &next_sample,
-                NULL);
-
-            for (size_t i = 0; i < total_tubes; i++)
-            {
-                if (!tube_is_pending(&results.test_results[i]))
-                {
-                    continue;
-                }
-
-                GammaCountsResult measurement =
-                    get_instant_measurement_gm(i);
-
-                if (measurement.error != MERCURY_READER_OK)
-                {
-                    results.test_results[i].status =
-                        STARTING_VOLTAGE_MEASUREMENT_ERROR;
-                    continue;
-                }
-
-                if (measurement.is_new)
-                {
-                    if (UINT_MAX - step_events[i] < measurement.events)
-                    {
-                        step_events[i] = UINT_MAX;
-                    }
-                    else
-                    {
-                        step_events[i] += measurement.events;
-                    }
-                }
-            }
-        }
-
-        for (size_t i = 0; i < total_tubes; i++)
-        {
-            StartingVoltageTestResult *tube_result =
-                &results.test_results[i];
-
-            if (!tube_is_pending(tube_result) ||
-                step_events[i] <
-                    (unsigned int)params->min_detected_events)
-            {
-                continue;
-            }
-
-            tube_result->status = STARTING_VOLTAGE_FOUND;
-            tube_result->starting_voltage = voltage;
-            tube_result->detection_step = (size_t)step;
-            tube_result->detected_events = step_events[i];
-            tube_result->detected_on_first_step = (step == 0);
-            tube_result->deviation_percent =
-                calculate_deviation_percent(
-                    voltage,
-                    params->reference_voltage);
-            tube_result->test_passed =
-                tube_result->deviation_percent <
-                (float)params->max_deviation_percent;
+            results.test_results[i].status =
+                STARTING_VOLTAGE_THREAD_ERROR;
         }
     }
 
     for (size_t i = 0; i < total_tubes; i++)
     {
-        if (tube_is_pending(&results.test_results[i]))
+        if (worker_started[i])
         {
-            results.test_results[i].status =
-                STARTING_VOLTAGE_NOT_FOUND;
+            pthread_join(workers[i], NULL);
         }
     }
 
     results.safe_shutdown_ok = disable_all_tubes(total_tubes);
-    free(step_events);
+    free(workers);
+    free(worker_params);
+    free(worker_started);
 
     return results;
 }
@@ -272,6 +286,8 @@ const char *starting_voltage_status_string(StartingVoltageStatus status)
             return "found";
         case STARTING_VOLTAGE_NOT_FOUND:
             return "not_found";
+        case STARTING_VOLTAGE_THREAD_ERROR:
+            return "thread_error";
         case STARTING_VOLTAGE_SET_HV_ERROR:
             return "set_hv_error";
         case STARTING_VOLTAGE_MEASUREMENT_ERROR:

@@ -51,26 +51,36 @@ static void *get_tube_gamma_dose_rate_avg(void *args)
     return NULL;
 }
 
-static bool gamma_test_ok(float gamma_ref, float gamma_out, size_t max_deviation_percent)
+static bool gamma_test_ok(
+    float gamma_ref,
+    float gamma_out,
+    int max_deviation_percent)
 {
-    if (gamma_out == 0)
+    if (gamma_ref <= 0.0f || gamma_out <= 0.0f)
     {
         return false;
     }
 
-    float deviation_percent = fabsf((gamma_out - gamma_ref) / gamma_out) * 100.0f;
+    float deviation_percent =
+        fabsf((gamma_out - gamma_ref) / gamma_ref) * 100.0f;
 
     return deviation_percent < (float)max_deviation_percent;
 }
 
-GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t total_tubes, size_t ref_tube_index)
+GammaDoseRateTestResults test_gamma_tubes(
+    const GammaTestParams *params,
+    size_t total_tubes,
+    size_t ref_tube_index)
 {
 
     GammaDoseRateTestResults result = {
         .count = 0,
         .test_results = NULL};
 
-    if (total_tubes == 0 || ref_tube_index >= total_tubes)
+    if (params == NULL || params->acquisition_time_sec <= 0 ||
+        params->max_deviation_percent < 0 ||
+        params->avg_dose_rate_ref <= 0 || total_tubes == 0 ||
+        ref_tube_index >= total_tubes)
     {
         return result;
     }
@@ -122,7 +132,7 @@ GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t to
         }
     }
 
-    sleep(acquisition_time_sec);
+    sleep((unsigned int)params->acquisition_time_sec);
     atomic_store(&acquisition_running, false);
 
     // terminazione dei thread: avg viene valorizzata
@@ -139,10 +149,25 @@ GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t to
     float ref_avg = result.test_results[ref_tube_index].avg;
     if (ref_avg == 0.0f)
     {
-        fprintf(stderr, "tube ref average not calculated");
+        fprintf(stderr, "tube ref average not calculated\n");
     }
 
-    // controllo media del tubo di riferimento @todo
+    for (size_t i = 0; i < total_tubes; i++)
+    {
+        if (!result.test_results[i].thread_started)
+        {
+            continue;
+        }
+
+        float reference = result.test_results[i].ref_tube
+            ? (float)params->avg_dose_rate_ref
+            : ref_avg;
+
+        result.test_results[i].test_passed = gamma_test_ok(
+            reference,
+            result.test_results[i].avg,
+            params->max_deviation_percent);
+    }
 
     free(workers);
     free(workers_params);

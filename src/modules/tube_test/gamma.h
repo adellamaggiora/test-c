@@ -5,6 +5,8 @@
 // perchè così si evita che le dichiarazioni dell'header vengano processate più volte
 #include <stdatomic.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include "config.h"
 
 typedef enum
 {
@@ -34,6 +36,9 @@ typedef struct GammaDoseRateTestResults {
     GammaDoseRateTestResult *test_results;
 } GammaDoseRateTestResults;
 
-GammaDoseRateTestResults test_gamma_tubes(size_t acquisition_time_sec, size_t total_tubes, size_t ref_tube_index);
+GammaDoseRateTestResults test_gamma_tubes(
+    const GammaTestParams *params,
+    size_t total_tubes,
+    size_t ref_tube_index);
 
 #endif
