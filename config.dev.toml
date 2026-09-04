@@ -1,3 +1,6 @@
+# Le soglie max_deviation_percent sono definite in
+# src/modules/compiled_config.c e richiedono una ricompilazione.
+
 [general]
 operator_name = "operatore1"
 report_folder_path = "report"
@@ -5,12 +8,10 @@ execution_mode = "simulated"
 
 [small_tube.test_gamma]
 acquisition_time_sec = 100
-max_deviation_percent = 5
 avg_dose_rate_ref = 10
 
 [large_tube.test_gamma]
 acquisition_time_sec = 100
-max_deviation_percent = 5
 avg_dose_rate_ref = 10
 
 [small_tube.test_starting_voltage]
@@ -22,13 +23,11 @@ min_voltage = 280
 max_voltage = 320
 hv_increment_per_step = 10
 reference_voltage = 340
-max_deviation_percent = 10
 voltage_settling_time_ms = 100
 absolute_max_voltage = 500
 
 [small_tube.test_dead_time]
 reference_dead_time_us = 190.0
-max_deviation_percent = 5.0
 
 [large_tube.test_starting_voltage]
 voltage_steps = 10
@@ -39,10 +38,8 @@ min_voltage = 280
 max_voltage = 320
 hv_increment_per_step = 10
 reference_voltage = 340
-max_deviation_percent = 10
 voltage_settling_time_ms = 100
 absolute_max_voltage = 500
 
 [large_tube.test_dead_time]
 reference_dead_time_us = 190.0
-max_deviation_percent = 5.0

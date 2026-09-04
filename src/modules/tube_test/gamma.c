@@ -67,9 +67,10 @@ static bool gamma_test_ok(
     return deviation_percent < (float)max_deviation_percent;
 }
 
-GammaDoseRateTestResults test_gamma_tubes(
+static GammaDoseRateTestResults test_gamma_indices(
     const GammaTestParams *params,
-    size_t total_tubes,
+    const size_t *tube_indices,
+    size_t tube_count,
     size_t ref_tube_index)
 {
 
@@ -79,15 +80,32 @@ GammaDoseRateTestResults test_gamma_tubes(
 
     if (params == NULL || params->acquisition_time_sec <= 0 ||
         params->max_deviation_percent < 0 ||
-        params->avg_dose_rate_ref <= 0 || total_tubes == 0 ||
-        ref_tube_index >= total_tubes)
+        params->avg_dose_rate_ref <= 0 || tube_count == 0)
     {
         return result;
     }
 
-    pthread_t *workers = malloc(total_tubes * sizeof(pthread_t));
-    GammaDoseRateWorkerParams *workers_params = malloc(total_tubes * sizeof(GammaDoseRateWorkerParams));
-    result.test_results = malloc(total_tubes * sizeof(GammaDoseRateTestResult));
+    size_t ref_result_index = tube_count;
+    for (size_t i = 0; i < tube_count; i++)
+    {
+        size_t tube_index = tube_indices == NULL ? i : tube_indices[i];
+        if (tube_index == ref_tube_index)
+        {
+            ref_result_index = i;
+            break;
+        }
+    }
+
+    if (ref_result_index == tube_count)
+    {
+        return result;
+    }
+
+    pthread_t *workers = malloc(tube_count * sizeof(pthread_t));
+    GammaDoseRateWorkerParams *workers_params = malloc(
+        tube_count * sizeof(GammaDoseRateWorkerParams));
+    result.test_results = malloc(
+        tube_count * sizeof(GammaDoseRateTestResult));
 
     if (workers == NULL || workers_params == NULL || result.test_results == NULL)
     {
@@ -100,19 +118,22 @@ GammaDoseRateTestResults test_gamma_tubes(
         return result;
     }
 
-    result.count = total_tubes;
+    result.count = tube_count;
     // start acquisition
     atomic_bool acquisition_running;
     atomic_init(&acquisition_running, true);
 
-    for (size_t i = 0; i < total_tubes; i++)
+    for (size_t i = 0; i < tube_count; i++)
     {
+        size_t tube_index = tube_indices == NULL ? i : tube_indices[i];
         // worker params
         workers_params[i].avg = 0.0f;
         workers_params[i].acquisition_running = &acquisition_running;
         // test results
+        result.test_results[i].tube_index = tube_index;
         result.test_results[i].avg = 0.0f;
-        result.test_results[i].ref_tube = (bool)(i == ref_tube_index);
+        result.test_results[i].ref_tube =
+            (bool)(tube_index == ref_tube_index);
         result.test_results[i].thread_started = false;
         result.test_results[i].test_passed = false;
 
@@ -128,7 +149,11 @@ GammaDoseRateTestResults test_gamma_tubes(
         }
         else
         {
-            fprintf(stderr, "pthread_create tube %zu: %s\n", i, strerror(error));
+            fprintf(
+                stderr,
+                "pthread_create tube %zu: %s\n",
+                tube_index,
+                strerror(error));
         }
     }
 
@@ -136,7 +161,7 @@ GammaDoseRateTestResults test_gamma_tubes(
     atomic_store(&acquisition_running, false);
 
     // terminazione dei thread: avg viene valorizzata
-    for (size_t i = 0; i < total_tubes; i++)
+    for (size_t i = 0; i < tube_count; i++)
     {
         if (result.test_results[i].thread_started == true)
         {
@@ -146,13 +171,13 @@ GammaDoseRateTestResults test_gamma_tubes(
     }
 
     // la media del tubo di riferimento
-    float ref_avg = result.test_results[ref_tube_index].avg;
+    float ref_avg = result.test_results[ref_result_index].avg;
     if (ref_avg == 0.0f)
     {
         fprintf(stderr, "tube ref average not calculated\n");
     }
 
-    for (size_t i = 0; i < total_tubes; i++)
+    for (size_t i = 0; i < tube_count; i++)
     {
         if (!result.test_results[i].thread_started)
         {
@@ -173,4 +198,32 @@ GammaDoseRateTestResults test_gamma_tubes(
     free(workers_params);
 
     return result;
+}
+
+GammaDoseRateTestResults test_gamma_tubes(
+    const GammaTestParams *params,
+    size_t total_tubes,
+    size_t ref_tube_index)
+{
+    if (ref_tube_index >= total_tubes)
+    {
+        return (GammaDoseRateTestResults){0};
+    }
+
+    return test_gamma_indices(params, NULL, total_tubes, ref_tube_index);
+}
+
+GammaDoseRateTestResults test_gamma_tube(
+    const GammaTestParams *params,
+    size_t tube_index,
+    size_t ref_tube_index)
+{
+    size_t tube_indices[2] = {tube_index, ref_tube_index};
+    size_t tube_count = tube_index == ref_tube_index ? 1 : 2;
+
+    return test_gamma_indices(
+        params,
+        tube_indices,
+        tube_count,
+        ref_tube_index);
 }

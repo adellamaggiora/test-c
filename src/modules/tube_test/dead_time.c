@@ -146,6 +146,24 @@ DeadTimeTestResults test_dead_times(
     return results;
 }
 
+DeadTimeTestResults test_dead_time(
+    const DeadTimeTestParams *params,
+    double measured_dead_time_us,
+    size_t tube_index)
+{
+    DeadTimeTestResults results = test_dead_times(
+        params,
+        &measured_dead_time_us,
+        1);
+
+    if (results.test_results != NULL && results.count == 1)
+    {
+        results.test_results[0].tube_index = tube_index;
+    }
+
+    return results;
+}
+
 void free_dead_time_test_results(DeadTimeTestResults *results)
 {
     if (results == NULL)

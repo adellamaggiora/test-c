@@ -10,13 +10,19 @@
 typedef struct
 {
     const Config *config;
-    const GammaDoseRateTestResults *small_gamma;
-    const GammaDoseRateTestResults *large_gamma;
-    const StartingVoltageTestResults *small_starting_voltage;
-    const StartingVoltageTestResults *large_starting_voltage;
-    const DeadTimeTestResults *small_dead_time;
-    const DeadTimeTestResults *large_dead_time;
+    const char *tube_code;
+    const char *tube_profile;
+    size_t tube_index;
+    const GammaDoseRateTestResults *gamma;
+    const StartingVoltageTestResults *starting_voltage;
+    const DeadTimeTestResults *dead_time;
 } TestReportData;
+
+/*
+ * Tube codes are also used as file names. Keeping the accepted character set
+ * small makes it impossible for user input to escape the report directory.
+ */
+int tube_code_is_valid(const char *tube_code);
 
 int write_test_report(
     const TestReportData *data,

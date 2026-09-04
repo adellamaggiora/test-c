@@ -47,6 +47,10 @@ StartingVoltageTestResults test_starting_voltage_tubes(
     const StartingVoltageTestParams *params,
     size_t total_tubes);
 
+StartingVoltageTestResults test_starting_voltage_tube(
+    const StartingVoltageTestParams *params,
+    size_t tube_index);
+
 void free_starting_voltage_test_results(
     StartingVoltageTestResults *results);
 

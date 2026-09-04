@@ -42,6 +42,11 @@ DeadTimeTestResults test_dead_times(
     const double *measured_dead_times_us,
     size_t total_tubes);
 
+DeadTimeTestResults test_dead_time(
+    const DeadTimeTestParams *params,
+    double measured_dead_time_us,
+    size_t tube_index);
+
 void free_dead_time_test_results(DeadTimeTestResults *results);
 
 const char *dead_time_status_string(DeadTimeStatus status);

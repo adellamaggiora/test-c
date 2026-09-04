@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tomlc17.h>
+#include "compiled_config.h"
 #include "config.h"
 
 
@@ -103,17 +104,11 @@ int read_config(const char *file_path, Config *config)
         read_int(root, "small_tube.test_gamma.acquisition_time_sec",
                  &config->small_tube.gamma_test_params.acquisition_time_sec) ||
 
-        read_int(root, "small_tube.test_gamma.max_deviation_percent",
-                 &config->small_tube.gamma_test_params.max_deviation_percent) ||
-
         read_int(root, "small_tube.test_gamma.avg_dose_rate_ref",
                 &config->small_tube.gamma_test_params.avg_dose_rate_ref) ||
 
         read_int(root, "large_tube.test_gamma.acquisition_time_sec",
                  &config->large_tube.gamma_test_params.acquisition_time_sec) ||
-
-        read_int(root, "large_tube.test_gamma.max_deviation_percent",
-                 &config->large_tube.gamma_test_params.max_deviation_percent) ||      
 
         read_int(root, "large_tube.test_gamma.avg_dose_rate_ref",
                  &config->large_tube.gamma_test_params.avg_dose_rate_ref) ||
@@ -141,9 +136,6 @@ int read_config(const char *file_path, Config *config)
 
         read_int(root, "small_tube.test_starting_voltage.reference_voltage",
                  &config->small_tube.starting_voltage_test_params.reference_voltage) ||
-
-        read_int(root, "small_tube.test_starting_voltage.max_deviation_percent",
-                 &config->small_tube.starting_voltage_test_params.max_deviation_percent) ||
 
         read_int(root, "small_tube.test_starting_voltage.voltage_settling_time_ms",
                  &config->small_tube.starting_voltage_test_params.voltage_settling_time_ms) ||
@@ -175,9 +167,6 @@ int read_config(const char *file_path, Config *config)
         read_int(root, "large_tube.test_starting_voltage.reference_voltage",
                  &config->large_tube.starting_voltage_test_params.reference_voltage) ||
 
-        read_int(root, "large_tube.test_starting_voltage.max_deviation_percent",
-                 &config->large_tube.starting_voltage_test_params.max_deviation_percent) ||
-
         read_int(root, "large_tube.test_starting_voltage.voltage_settling_time_ms",
                  &config->large_tube.starting_voltage_test_params.voltage_settling_time_ms) ||
 
@@ -187,14 +176,8 @@ int read_config(const char *file_path, Config *config)
         read_double(root, "small_tube.test_dead_time.reference_dead_time_us",
                     &config->small_tube.dead_time_test_params.reference_dead_time_us) ||
 
-        read_double(root, "small_tube.test_dead_time.max_deviation_percent",
-                    &config->small_tube.dead_time_test_params.max_deviation_percent) ||
-
         read_double(root, "large_tube.test_dead_time.reference_dead_time_us",
-                    &config->large_tube.dead_time_test_params.reference_dead_time_us) ||
-
-        read_double(root, "large_tube.test_dead_time.max_deviation_percent",
-                    &config->large_tube.dead_time_test_params.max_deviation_percent);
+                    &config->large_tube.dead_time_test_params.reference_dead_time_us);
 
     toml_free(parsed);
 
@@ -202,6 +185,22 @@ int read_config(const char *file_path, Config *config)
         free_config(config);
         return -1;
     }
+
+    config->small_tube.gamma_test_params.max_deviation_percent =
+        compiled_acceptance_config.small_tube.gamma_max_deviation_percent;
+    config->small_tube.starting_voltage_test_params.max_deviation_percent =
+        compiled_acceptance_config.small_tube
+            .starting_voltage_max_deviation_percent;
+    config->small_tube.dead_time_test_params.max_deviation_percent =
+        compiled_acceptance_config.small_tube.dead_time_max_deviation_percent;
+
+    config->large_tube.gamma_test_params.max_deviation_percent =
+        compiled_acceptance_config.large_tube.gamma_max_deviation_percent;
+    config->large_tube.starting_voltage_test_params.max_deviation_percent =
+        compiled_acceptance_config.large_tube
+            .starting_voltage_max_deviation_percent;
+    config->large_tube.dead_time_test_params.max_deviation_percent =
+        compiled_acceptance_config.large_tube.dead_time_max_deviation_percent;
 
     return 0;
 }

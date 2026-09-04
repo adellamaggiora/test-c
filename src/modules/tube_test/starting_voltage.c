@@ -169,13 +169,16 @@ static void *test_starting_voltage_worker(void *args)
     return NULL;
 }
 
-static bool disable_all_tubes(size_t total_tubes)
+static bool disable_tested_tubes(
+    const size_t *tube_indices,
+    size_t tube_count)
 {
     bool shutdown_ok = true;
 
-    for (size_t i = 0; i < total_tubes; i++)
+    for (size_t i = 0; i < tube_count; i++)
     {
-        if (set_hv(i, false, 0) != MERCURY_READER_OK)
+        size_t tube_index = tube_indices == NULL ? i : tube_indices[i];
+        if (set_hv(tube_index, false, 0) != MERCURY_READER_OK)
         {
             shutdown_ok = false;
         }
@@ -184,9 +187,10 @@ static bool disable_all_tubes(size_t total_tubes)
     return shutdown_ok;
 }
 
-StartingVoltageTestResults test_starting_voltage_tubes(
+static StartingVoltageTestResults test_starting_voltage_indices(
     const StartingVoltageTestParams *params,
-    size_t total_tubes)
+    const size_t *tube_indices,
+    size_t tube_count)
 {
     StartingVoltageTestResults results = {
         .error = STARTING_VOLTAGE_TEST_OK,
@@ -194,20 +198,20 @@ StartingVoltageTestResults test_starting_voltage_tubes(
         .count = 0,
         .test_results = NULL};
 
-    if (!parameters_are_valid(params, total_tubes, &results.error))
+    if (!parameters_are_valid(params, tube_count, &results.error))
     {
         return results;
     }
 
     results.test_results = calloc(
-        total_tubes,
+        tube_count,
         sizeof(StartingVoltageTestResult));
 
-    pthread_t *workers = calloc(total_tubes, sizeof(pthread_t));
+    pthread_t *workers = calloc(tube_count, sizeof(pthread_t));
     StartingVoltageWorkerParams *worker_params = calloc(
-        total_tubes,
+        tube_count,
         sizeof(StartingVoltageWorkerParams));
-    bool *worker_started = calloc(total_tubes, sizeof(bool));
+    bool *worker_started = calloc(tube_count, sizeof(bool));
 
     if (results.test_results == NULL || workers == NULL ||
         worker_params == NULL || worker_started == NULL)
@@ -221,16 +225,17 @@ StartingVoltageTestResults test_starting_voltage_tubes(
         return results;
     }
 
-    results.count = total_tubes;
+    results.count = tube_count;
 
-    for (size_t i = 0; i < total_tubes; i++)
+    for (size_t i = 0; i < tube_count; i++)
     {
-        results.test_results[i].tube_index = i;
+        size_t tube_index = tube_indices == NULL ? i : tube_indices[i];
+        results.test_results[i].tube_index = tube_index;
         results.test_results[i].status = STARTING_VOLTAGE_PENDING;
 
         worker_params[i] = (StartingVoltageWorkerParams){
             .params = params,
-            .tube_index = i,
+            .tube_index = tube_index,
             .result = &results.test_results[i]};
 
         if (pthread_create(
@@ -248,7 +253,7 @@ StartingVoltageTestResults test_starting_voltage_tubes(
         }
     }
 
-    for (size_t i = 0; i < total_tubes; i++)
+    for (size_t i = 0; i < tube_count; i++)
     {
         if (worker_started[i])
         {
@@ -256,12 +261,28 @@ StartingVoltageTestResults test_starting_voltage_tubes(
         }
     }
 
-    results.safe_shutdown_ok = disable_all_tubes(total_tubes);
+    results.safe_shutdown_ok = disable_tested_tubes(
+        tube_indices,
+        tube_count);
     free(workers);
     free(worker_params);
     free(worker_started);
 
     return results;
+}
+
+StartingVoltageTestResults test_starting_voltage_tubes(
+    const StartingVoltageTestParams *params,
+    size_t total_tubes)
+{
+    return test_starting_voltage_indices(params, NULL, total_tubes);
+}
+
+StartingVoltageTestResults test_starting_voltage_tube(
+    const StartingVoltageTestParams *params,
+    size_t tube_index)
+{
+    return test_starting_voltage_indices(params, &tube_index, 1);
 }
 
 void free_starting_voltage_test_results(

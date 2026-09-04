@@ -11,24 +11,56 @@ int main(void)
         .report_folder_path = "build/test_reports",
         .execution_mode = "simulated"};
 
-    GammaDoseRateTestResults gamma = {0};
-    StartingVoltageTestResults starting_voltage = {0};
-    DeadTimeTestResults dead_time = {0};
+    GammaDoseRateTestResult gamma_result = {
+        .tube_index = 0,
+        .avg = 10.2f,
+        .thread_started = true,
+        .ref_tube = false,
+        .test_passed = true};
+    GammaDoseRateTestResults gamma = {
+        .count = 1,
+        .test_results = &gamma_result};
+
+    StartingVoltageTestResult starting_voltage_result = {
+        .tube_index = 0,
+        .status = STARTING_VOLTAGE_FOUND,
+        .starting_voltage = 330,
+        .detected_events = 7,
+        .deviation_percent = 2.0f,
+        .test_passed = true};
+    StartingVoltageTestResults starting_voltage = {
+        .error = STARTING_VOLTAGE_TEST_OK,
+        .safe_shutdown_ok = true,
+        .count = 1,
+        .test_results = &starting_voltage_result};
+
+    DeadTimeTestResult dead_time_result = {
+        .tube_index = 0,
+        .status = DEAD_TIME_VALUE_VALID,
+        .measured_dead_time_us = 190.0,
+        .reference_dead_time_us = 190.0,
+        .deviation_percent = 0.0,
+        .test_passed = true};
+    DeadTimeTestResults dead_time = {
+        .error = DEAD_TIME_TEST_OK,
+        .count = 1,
+        .test_results = &dead_time_result};
 
     TestReportData data = {
         .config = &config,
-        .small_gamma = &gamma,
-        .large_gamma = &gamma,
-        .small_starting_voltage = &starting_voltage,
-        .large_starting_voltage = &starting_voltage,
-        .small_dead_time = &dead_time,
-        .large_dead_time = &dead_time};
+        .tube_code = "GM001",
+        .tube_profile = "small",
+        .tube_index = 0,
+        .gamma = &gamma,
+        .starting_voltage = &starting_voltage,
+        .dead_time = &dead_time};
 
     char report_path[4096];
     assert(write_test_report(
                &data,
                report_path,
                sizeof(report_path)) == 0);
+    assert(strcmp(report_path, "build/test_reports/GM001.txt") == 0);
 
     FILE *report = fopen(report_path, "r");
     assert(report != NULL);
@@ -42,8 +74,17 @@ int main(void)
     content[bytes_read] = '\0';
 
     assert(fclose(report) == 0);
-    assert(strstr(content, "Tube test report") != NULL);
+    assert(strstr(content, "TUBE TEST REPORT") != NULL);
+    assert(strstr(content, "Tube code: GM001") != NULL);
     assert(strstr(content, "Operator: test operator") != NULL);
+    assert(strstr(content, "Overall result: PASS") != NULL);
+    assert(strstr(content, "[x] Gamma: PASS") != NULL);
+
+    data.tube_code = "../invalid";
+    assert(write_test_report(
+               &data,
+               report_path,
+               sizeof(report_path)) != 0);
 
     assert(unlink(report_path) == 0);
     rmdir("build/test_reports");

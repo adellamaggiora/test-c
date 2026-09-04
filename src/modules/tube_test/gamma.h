@@ -1,5 +1,5 @@
-#ifndef WORKER_H
-#define WORKER_H
+#ifndef GAMMA_H
+#define GAMMA_H
 
 // include va dopo la header guard he deve racchiudere tuttom il contenuto del file
 // perchè così si evita che le dichiarazioni dell'header vengano processate più volte
@@ -25,6 +25,7 @@ typedef struct GammaDoseRateWorkerParams
 
 
 typedef struct GammaDoseRateTestResult {
+    size_t tube_index;
     float avg;
     bool thread_started;
     bool ref_tube;
@@ -39,6 +40,11 @@ typedef struct GammaDoseRateTestResults {
 GammaDoseRateTestResults test_gamma_tubes(
     const GammaTestParams *params,
     size_t total_tubes,
+    size_t ref_tube_index);
+
+GammaDoseRateTestResults test_gamma_tube(
+    const GammaTestParams *params,
+    size_t tube_index,
     size_t ref_tube_index);
 
 #endif
